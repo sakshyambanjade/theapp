@@ -1,51 +1,94 @@
 const express = require('express');
-const { Pool } = require('pg'); // Import the pg package
-const bcrypt = require('bcryptjs'); // For hashing passwords
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const bodyParser = require('body-parser');
+const cors = require('cors'); // Import the CORS package
 
 const app = express();
-const port = 5000; // You can change this to any port you want
+const port = process.env.PORT || 5000;
 
-// Configure PostgreSQL connection pool
-const pool = new Pool({
-  user: 'your_postgres_user',      // Your PostgreSQL username
-  host: 'localhost',               // The host where your PostgreSQL server is running
-  database: 'user_management',     // The name of the database you created
-  password: 'your_postgres_password', // Your PostgreSQL password
-  port: 5432,                      // Default PostgreSQL port
-});
+// Use CORS before routes
+app.use(cors());  // Allow all origins by default
+// Or, restrict to specific origins:
+app.use(cors({
+  origin: 'http://localhost:3000', // Only allow requests from this origin
+}));
 
-// Middleware to parse incoming requests as JSON
+// Middleware to parse JSON
 app.use(express.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-// API endpoint for sign-up
-app.post('/signup', async (req, res) => {
+// Mock user database (replace with actual DB logic)
+const users = [];
+
+// POST /api/auth/register (Sign Up)
+app.post('/api/auth/register', async (req, res) => {
   const { firstName, lastName, email, password } = req.body;
 
-  try {
-    // Hash the password before storing it
-    const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
-
-    // Insert new user into the database
-    const result = await pool.query(
-      'INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING *',
-      [firstName, lastName, email, hashedPassword]
-    );
-
-    // Respond with the inserted user data
-    const newUser = result.rows[0]; // The inserted user data
-    res.status(201).json({
-      id: newUser.id,
-      firstName: newUser.first_name,
-      lastName: newUser.last_name,
-      email: newUser.email,
-    });
-  } catch (err) {
-    console.error('Error inserting user:', err);
-    res.status(500).json({ error: 'Failed to sign up' });
+  // Validate request data
+  if (!firstName || !lastName || !email || !password) {
+    return res.status(400).json({ message: 'All fields are required.' });
   }
+
+  // Check if user already exists
+  const existingUser = users.find((user) => user.email === email);
+  if (existingUser) {
+    return res.status(400).json({ message: 'Email is already registered.' });
+  }
+
+  // Hash the password before saving
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Save new user
+  const newUser = {
+    id: users.length + 1,
+    firstName,
+    lastName,
+    email,
+    password: hashedPassword,
+  };
+  users.push(newUser);
+
+  res.status(201).json({ message: 'User registered successfully.' });
 });
 
-// Start the Express server
+// POST /api/auth/login (Sign In)
+app.post('/api/auth/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  // Validate request data
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required.' });
+  }
+
+  // Find user by email
+  const user = users.find((user) => user.email === email);
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid credentials.' });
+  }
+
+  // Compare password with hashed password
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(401).json({ message: 'Invalid credentials.' });
+  }
+
+  // Generate JWT token
+  const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'your-secret-key', {
+    expiresIn: '1h',
+  });
+
+  // Return token
+  res.json({ token });
+});
+
+// General error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong' });
+});
+
+// Start the server
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Server is running on port ${port}`);
 });
