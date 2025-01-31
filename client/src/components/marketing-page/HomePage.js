@@ -1,16 +1,16 @@
 import * as React from 'react';
 import CssBaseline from '@mui/material/CssBaseline';
 import Divider from '@mui/material/Divider';
-import AppAppBar from '../../Assets/AppAppBar';
-import Hero from '../../Assets/Hero';
-import LogoCollection from '../../Assets/LogoCollection';
-import Highlights from '../../Assets/Highlights';
-import Pricing from '../../Assets/Pricing';
-import Features from '../../Assets/Features';
-import Testimonials from '../../Assets/Testimonials';
-import FAQ from '../../Assets/FAQ';
-import Footer from '../../Assets/Footer';
-import AppTheme from '../../Assets/SharedTheme/AppTheme';
+import AppTheme from '../shared-theme/AppTheme';
+import AppAppBar from './components/AppAppBar';
+import Hero from './components/Hero';
+import LogoCollection from './components/LogoCollection';
+import Highlights from './components/Highlights';
+import Pricing from './components/Pricing';
+import Features from './components/Features';
+import Testimonials from './components/Testimonials';
+import FAQ from './components/FAQ';
+import Footer from './components/Footer';
 
 export default function MarketingPage(props) {
   return (
