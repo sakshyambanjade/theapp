@@ -4,13 +4,12 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'; // Import The
 import { CContainer } from '@coreui/react';
 import Login from './components/Login/SignIn';
 import Register from './components/Register/SignUp';
-import Home from '../src/components/Landing/Landing'
+import HomePage from '../src/components/marketing-page/HomePage'
 
-// Define the theme here
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#1976d2', // Ensure this is defined correctly
+      main: '#1976d2', //Ensure this is defined correctly
     },
     secondary: {
       main: '#dc004e', // Ensure this is defined correctly
@@ -24,9 +23,10 @@ function App() {
       <Router>
         <CContainer>
           <Routes>
-          <Route path="/" element={<Home />} />
-            <Route path="/SignIn" element={<Login />} />
-            <Route path="/SignUp" element={<Register />} />
+            <Route path="/signin" element={<Login />} />
+            <Route path="/signup" element={<Register />} />
+            <Route path="/" element={<HomePage />} />
+
           </Routes>
         </CContainer>
       </Router>
